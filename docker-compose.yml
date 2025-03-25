@@ -1,0 +1,52 @@
+services:
+    nestjs:
+        build:
+            context: ./
+            dockerfile: Dockerfile
+        container_name: nest-test
+        ports:
+            - '3000:3000'
+        networks:
+            - internal
+            - external
+
+    db_nest:
+        image: mysql:5.7.22
+        container_name: db_nest
+        volumes:
+            - db-nest:/var/lib/mysql
+        ports:
+            - "3306:3306"
+        environment:
+            MYSQL_DATABASE: docker_nest
+            MYSQL_ROOT_PASSWORD: root
+            MYSQL_ALLOW_EMPTY_PASSWORD: 'no'
+        networks:
+            - internal
+            - external
+
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin:5.2
+        ports:
+            - '8888:80'
+        depends_on:
+            db_nest:
+                condition: service_started
+        environment:
+            PMA_HOST: db_nest
+            PMA_USER : root
+            PMA_PASSWORD : root
+        networks:
+            - internal
+            - external
+
+networks:
+    internal:
+        driver: bridge
+    external:
+        driver: bridge
+
+volumes:
+    db-nest:
+        driver: local
+
